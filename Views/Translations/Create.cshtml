@@ -17,7 +17,7 @@
                 Translate from:
             </label>
             <select id="languageFromDropdown" asp-for="LanguageFrom">
-                @foreach (var language in Model.Languages)
+                @foreach (var language in Model.originLanguages)
                 {
                     <option value="@language.ID">@language.Name</option>
                 }
@@ -35,7 +35,7 @@
                 Translate into:
             </label>
             <select id="languageToDropdown" asp-for="LanguageTo">
-                @foreach (var language in Model.Languages)
+                @foreach (var language in Model.targetLanguages)
                 {
                     <option value="@language.ID">@language.Name</option>
                 }
@@ -60,4 +60,27 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var languageFromDropdown = document.getElementById("languageFromDropdown");
+            var languageToDropdown = document.getElementById("languageToDropdown");
+
+            languageFromDropdown.addEventListener("change", function () {
+                if (this.value === languageToDropdown.value) {
+                    languageToDropdown.value = Model.english;
+                }
+                else if (this.value === languageToDropdown.value && languageFromDropdown == Model.english) {
+                    languageToDropdown.value = Model.german;
+                }
+            });
+
+            languageToDropdown.addEventListener("change", function () {
+                if (this.value === languageFromDropdown.value) {
+                    languageFromDropdown.value = Model.detectLanguage;
+                }
+            });
+        });
+    </script>
 }
+

@@ -51,7 +51,33 @@ namespace WebApp.Controllers
 
             viewModel.Translation = new Translation();
 
-            viewModel.Languages = await _context.Language.ToListAsync();
+            List<Language> allLanguages = await _context.Language.ToListAsync();
+
+            List<Language> originLanguages = new List<Language>();
+            List<Language> targetLanguages = new List<Language>();
+
+            foreach (Language lan in allLanguages)
+            {
+                if (lan.isTargetLanguage == true)
+                {
+                    targetLanguages.Add(lan);
+                    if (lan.Abbreviation == "en - US")
+                        viewModel.english = lan.ID;
+                    if (lan.Abbreviation == "de")
+                        viewModel.german = lan.ID;
+                }
+
+                if (lan.isOriginLanguage == true)
+                {
+                    originLanguages.Add(lan);
+                    if (lan.Abbreviation == "DT")
+                        viewModel.detectLanguage = lan.ID;
+                }
+
+            }
+
+            viewModel.originLanguages = originLanguages;
+            viewModel.targetLanguages = targetLanguages;
 
             return View(viewModel);
         }
@@ -68,8 +94,8 @@ namespace WebApp.Controllers
 
             viewModel.Translation.OriginalLanguage = languageTo;
             viewModel.Translation.TranslatedLanguage = languageFrom;
-            viewModel.Languages = await _context.Language.ToListAsync();
-
+            viewModel.targetLanguages = await _context.Language.ToListAsync();
+            viewModel.originLanguages = await _context.Language.ToListAsync();
 
             Translation translation = new Translation();
 
@@ -82,6 +108,7 @@ namespace WebApp.Controllers
             var translator = new Translator(authKey);
             var translatedText = await translator.TranslateTextAsync(viewModel.Translation.OriginalText, languageFrom.Abbreviation, languageTo.Abbreviation); // "Hallo, Welt!";
             Console.WriteLine(translatedText);
+
 
             translation.TranslatedText = translatedText.Text; // .Text einfügen wenn problem gelöst.
             viewModel.Translation.TranslatedText = translatedText.Text;  // .Text einfügen wenn problem gelöst.

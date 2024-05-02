@@ -12,8 +12,8 @@ using WebApp.Data;
 namespace WebApp.Migrations
 {
     [DbContext(typeof(WebAppContext))]
-    [Migration("20240425124716_TranslationTable")]
-    partial class TranslationTable
+    [Migration("20240502144613_Update_Language_Properties")]
+    partial class Update_Language_Properties
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -41,6 +41,12 @@ namespace WebApp.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("isOriginLanguage")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("isTargetLanguage")
+                        .HasColumnType("bit");
+
                     b.HasKey("ID");
 
                     b.ToTable("Language");
@@ -54,18 +60,17 @@ namespace WebApp.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
-                    b.Property<int>("OriginalLanguageID")
+                    b.Property<int?>("OriginalLanguageID")
                         .HasColumnType("int");
 
                     b.Property<string>("OriginalText")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TranslatedLanguageID")
+                    b.Property<int?>("TranslatedLanguageID")
                         .HasColumnType("int");
 
                     b.Property<string>("TranslatedText")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("translated_at")
@@ -84,15 +89,11 @@ namespace WebApp.Migrations
                 {
                     b.HasOne("WebApp.Models.Language", "OriginalLanguage")
                         .WithMany()
-                        .HasForeignKey("OriginalLanguageID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("OriginalLanguageID");
 
                     b.HasOne("WebApp.Models.Language", "TranslatedLanguage")
                         .WithMany()
-                        .HasForeignKey("TranslatedLanguageID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("TranslatedLanguageID");
 
                     b.Navigation("OriginalLanguage");
 

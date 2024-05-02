@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DeepL;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -56,9 +57,42 @@ namespace WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ID,Name,Abbreviation")] Language language)
         {
+            List<Language> languages = new List<Language>(); 
+
+            var authKey = "f2981bee-344a-4a1f-b65f-877950fa3855:fx"; // Replace with your key
+            var translator = new Translator(authKey);
+
+            var sourceLanguages = await translator.GetSourceLanguagesAsync();
+            foreach (var lang in sourceLanguages)
+            {
+                Console.WriteLine($"{lang.Name} ({lang.Code})"); // Example: "English (EN)"
+                Language createlan = new Language(lang.Name, lang.Code);
+                createlan.isOriginLanguage = true;
+                languages.Add(createlan);
+
+            }
+            var targetLanguages = await translator.GetTargetLanguagesAsync();
+            foreach (var lang in targetLanguages)
+            {
+                Console.WriteLine($"{lang.Name} ({lang.Code})"); // Example: "English (EN)"
+
+                Language createlan = new Language(lang.Name, lang.Code);
+                foreach (Language lan in languages)
+                {
+                    if (createlan.Abbreviation.Equals(lan.Abbreviation))
+                        lan.isTargetLanguage = true;
+                    else {
+                        createlan.isOriginLanguage = false;
+                        createlan.isTargetLanguage = true;
+                        languages.Add(createlan);
+
+                    }
+                }
+            }
+
             if (ModelState.IsValid)
             {
-                _context.Add(language);
+                _context.Add(languages);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
