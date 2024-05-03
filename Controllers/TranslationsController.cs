@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using WebApp.Data;
 using WebApp.Models;
 using DeepL;
+using WebApp.ViewModels;
+using WebApp.ViewModelHandler;
 
 namespace WebApp.Controllers
 {
@@ -47,38 +49,7 @@ namespace WebApp.Controllers
         // GET: Translations/Create
         public async Task<IActionResult> CreateAsync()
         {
-            CreateTranslationViewModel viewModel = new CreateTranslationViewModel();
-
-            viewModel.Translation = new Translation();
-
-            List<Language> allLanguages = await _context.Language.ToListAsync();
-
-            List<Language> originLanguages = new List<Language>();
-            List<Language> targetLanguages = new List<Language>();
-
-            foreach (Language lan in allLanguages)
-            {
-                if (lan.isTargetLanguage == true)
-                {
-                    targetLanguages.Add(lan);
-                    if (lan.Abbreviation == "en-US")
-                        viewModel.english = lan.ID;
-                    if (lan.Abbreviation == "de")
-                        viewModel.german = lan.ID;
-                }
-
-                if (lan.isOriginLanguage == true)
-                {
-                    originLanguages.Add(lan);
-                    if (lan.Abbreviation == "DT")
-                        viewModel.detectLanguage = lan.ID;
-                }
-
-            }
-
-            viewModel.originLanguages = originLanguages;
-            viewModel.targetLanguages = targetLanguages;
-
+            CreateTranslationViewModel viewModel = await CreateTranslationViewModelHandler.createViewModelAsync(_context);
             return View(viewModel);
         }
 
@@ -87,39 +58,69 @@ namespace WebApp.Controllers
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateTranslationViewModel viewModel) //[Bind("ID,OriginalText,TranslatedText,translated_at")] Translation translation)
+        public async Task<IActionResult> Create(CreateTranslationViewModel returnedViewModel) //[Bind("ID,OriginalText,TranslatedText,translated_at")] Translation translation)
         {
-            Language languageTo = await _context.Language.FindAsync(viewModel.LanguageTo);
-            Language languageFrom = await _context.Language.FindAsync(viewModel.LanguageFrom);
+            Language languageTo = await _context.Language.FindAsync(returnedViewModel.LanguageTo);
+            Language languageFrom = await _context.Language.FindAsync(returnedViewModel.LanguageFrom);
 
+            CreateTranslationViewModel viewModel = await CreateTranslationViewModelHandler.createViewModelAsync(_context);
             viewModel.Translation.OriginalLanguage = languageTo;
             viewModel.Translation.TranslatedLanguage = languageFrom;
-            viewModel.targetLanguages = await _context.Language.ToListAsync();
-            viewModel.originLanguages = await _context.Language.ToListAsync();
+            viewModel.Translation.OriginalText = returnedViewModel.Translation.OriginalText;
 
             Translation translation = new Translation();
 
             translation.OriginalLanguage = languageFrom;
             translation.TranslatedLanguage = languageTo;
-            translation.OriginalText = viewModel.Translation.OriginalText;
-            // translation.TranslatedText = model.Translation.TranslatedText;
+            translation.OriginalText = returnedViewModel.Translation.OriginalText;
 
-            var authKey = "f2981bee-344a-4a1f-b65f-877950fa3855:fx"; // Replace with your key
-            var translator = new Translator(authKey);
-            var translatedText = await translator.TranslateTextAsync(viewModel.Translation.OriginalText, languageFrom.Abbreviation, languageTo.Abbreviation); // "Hallo, Welt!";
-            Console.WriteLine(translatedText);
-
-
-            translation.TranslatedText = translatedText.Text; // .Text einfügen wenn problem gelöst.
-            viewModel.Translation.TranslatedText = translatedText.Text;  // .Text einfügen wenn problem gelöst.
-
-            if (ModelState.IsValid)
+            try
             {
-                _context.Add(translation);
-                await _context.SaveChangesAsync();
-                return View(viewModel);
+                var authKey = "f2981bee-344a-4a1f-b65f-877950fa3855:fx"; // Replace with your key
+                var translator = new Translator(authKey);
+                DeepL.Model.TextResult translatedText = null;
+
+                if (languageFrom.Abbreviation == "DL")
+                {
+                    translatedText = await translator.TranslateTextAsync(viewModel.Translation.OriginalText, null, languageTo.Abbreviation); // "Hallo, Welt!";
+                }
+                else
+                {
+                    translatedText = await translator.TranslateTextAsync(returnedViewModel.Translation.OriginalText, languageFrom.Abbreviation, languageTo.Abbreviation); // "Hallo, Welt!";
+                }
+
+                translation.TranslatedText = translatedText.Text; // .Text einfügen wenn problem gelöst.
+                viewModel.Translation.TranslatedText = translatedText.Text;  // .Text einfügen wenn problem gelöst.
+
+                if (ModelState.IsValid)
+                {
+                    _context.Add(translation);
+                    await _context.SaveChangesAsync();
+                    return View(viewModel);
+                }
+                else
+                    return View(viewModel);
+            } 
+            catch (ConnectionException connectionException)
+            {
+                TempData["ErrorMessage"] = "Es konnte keine Verbindung zum Webservice aufgerufen werden: " + connectionException.Message;
+                return View();
+            } 
+            catch (QuotaExceededException quotaExceededException)
+            {
+                TempData["ErrorMessage"] = "Das Kontigent an möglichen Übersetzungen der Software ist ereicht: " + quotaExceededException.Message;
+                return View();
+            } 
+            catch (DeepLException deeplException)
+            {
+                TempData["ErrorMessage"] = "Fehlerhafte Sprachkombination angegeben: " + deeplException.Message;
+                return View();
             }
-            return View(translation);
+            catch (Exception exception)
+            {
+                TempData["ErrorMessage"] = "Ein unerwarteter Fehler ist aufgetreten: " + exception.Message;
+                return View();
+            }
         }
 
         // GET: Translations/Edit/5

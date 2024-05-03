@@ -1,12 +1,14 @@
-﻿@model WebApp.Models.CreateTranslationViewModel
+﻿@model WebApp.ViewModels.CreateTranslationViewModel
 
 @{
     ViewData["Title"] = "Create";
 }
 
-@Html.HiddenFor(model => model.english)
-@Html.HiddenFor(model => model.german)
-@Html.HiddenFor(model => model.detectLanguage)
+@Html.HiddenFor(model => model.English)
+@Html.HiddenFor(model => model.EnglishUS)
+@Html.HiddenFor(model => model.EnglishGB)
+@Html.HiddenFor(model => model.German)
+@Html.HiddenFor(model => model.DetectLanguage)
 
 <h1>Create</h1>
 
@@ -23,7 +25,14 @@
             <select id="languageFromDropdown" asp-for="LanguageFrom">
                 @foreach (var language in Model.originLanguages)
                 {
-                    <option value="@language.ID">@language.Name</option>
+                    if (@language.Abbreviation == "en")
+                    {
+                        <option selected value="@language.ID">@language.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@language.ID">@language.Name</option>
+                    }
                 }
             </select>
             <div class="form-group">
@@ -41,7 +50,14 @@
             <select id="languageToDropdown" asp-for="LanguageTo">
                 @foreach (var language in Model.targetLanguages)
                 {
-                    <option value="@language.ID">@language.Name</option>
+                    if (@language.Abbreviation == "de")
+                    {
+                        <option selected value="@language.ID">@language.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@language.ID">@language.Name</option>
+                    }
                 }
             </select>
             <div class="form-group">
@@ -69,26 +85,49 @@
         document.addEventListener("DOMContentLoaded", function () {
             var languageFromDropdown = document.getElementById("languageFromDropdown");
             var languageToDropdown = document.getElementById("languageToDropdown");
-            var englishValue = document.getElementById("english").value;
-            var germanValue = document.getElementById("german").value;
-            var detectLanguageValue = document.getElementById("detectLanguage").value;
+            var englishValue = document.getElementById("English").value;
+            var englishUSValue = document.getElementById("EnglishUS").value;
+            var englishGBValue = document.getElementById("EnglishGB").value;
+            var germanValue = document.getElementById("German").value;
+            var detectLanguageValue = document.getElementById("DetectLanguage").value;
+
 
 
             languageFromDropdown.addEventListener("change", function () {
-                if (this.value === languageToDropdown.value) {
-                    languageToDropdown.value = englishValue;
-                }
-                else if (this.value === languageToDropdown.value && languageFromDropdown == englishValue) {
+
+                if (this.value == englishValue && languageToDropdown.value == englishGBValue) {
                     languageToDropdown.value = germanValue;
+                }
+                else if (this.value == englishValue && languageToDropdown.value == englishUSValue) {
+                    languageToDropdown.value = germanValue;
+                }
+                else if (this.value == languageToDropdown.value) {
+                    languageToDropdown.value = englishUSValue;
                 }
             });
 
             languageToDropdown.addEventListener("change", function () {
-                if (this.value === languageFromDropdown.value) {
+                if (languageFromDropdown.value == englishValue && this.value == englishGBValue) {
+                    languageFromDropdown.value = detectLanguageValue;
+                }
+                else if (languageFromDropdown.value == englishValue && this.value == englishUSValue) {
+                    languageFromDropdown.value = detectLanguageValue;
+                }
+                else if (this.value == languageFromDropdown.value) {
                     languageFromDropdown.value = detectLanguageValue;
                 }
             });
         });
+    </script>
+
+    <script>
+        // Überprüfen, ob eine Fehlermeldung im TempData vorhanden ist
+        var errorMessage = "@TempData["ErrorMessage"]";
+
+        if (errorMessage) {
+            // Öffne ein Popup-Fenster mit der Fehlermeldung
+            alert(errorMessage);
+        }
     </script>
 }
 
