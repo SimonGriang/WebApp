@@ -4,6 +4,10 @@
     ViewData["Title"] = "Create";
 }
 
+@Html.HiddenFor(model => model.english)
+@Html.HiddenFor(model => model.german)
+@Html.HiddenFor(model => model.detectLanguage)
+
 <h1>Create</h1>
 
 <h4>Translation</h4>
@@ -65,19 +69,23 @@
         document.addEventListener("DOMContentLoaded", function () {
             var languageFromDropdown = document.getElementById("languageFromDropdown");
             var languageToDropdown = document.getElementById("languageToDropdown");
+            var englishValue = document.getElementById("english").value;
+            var germanValue = document.getElementById("german").value;
+            var detectLanguageValue = document.getElementById("detectLanguage").value;
+
 
             languageFromDropdown.addEventListener("change", function () {
                 if (this.value === languageToDropdown.value) {
-                    languageToDropdown.value = Model.english;
+                    languageToDropdown.value = englishValue;
                 }
-                else if (this.value === languageToDropdown.value && languageFromDropdown == Model.english) {
-                    languageToDropdown.value = Model.german;
+                else if (this.value === languageToDropdown.value && languageFromDropdown == englishValue) {
+                    languageToDropdown.value = germanValue;
                 }
             });
 
             languageToDropdown.addEventListener("change", function () {
                 if (this.value === languageFromDropdown.value) {
-                    languageFromDropdown.value = Model.detectLanguage;
+                    languageFromDropdown.value = detectLanguageValue;
                 }
             });
         });

@@ -61,7 +61,7 @@ namespace WebApp.Controllers
                 if (lan.isTargetLanguage == true)
                 {
                     targetLanguages.Add(lan);
-                    if (lan.Abbreviation == "en - US")
+                    if (lan.Abbreviation == "en-US")
                         viewModel.english = lan.ID;
                     if (lan.Abbreviation == "de")
                         viewModel.german = lan.ID;
