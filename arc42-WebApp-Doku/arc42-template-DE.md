@@ -15,7 +15,7 @@ Aufgabe it es eine Anwendung zu erstellen. Die Qualität der Software soll profe
 - das Verwenden einer externen API
 - das Einbinden einer Datenbank
 - das Integrieren einer Benutzeroberfläche
-
+ 
 ## Qualitätsziele {#_qualit_tsziele}
 
 Die folgend aufgeführten Qualitätsziele nach ISO 25010 sind: Functional Suitability, Operability, Maintainability
