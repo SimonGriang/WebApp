@@ -1,34 +1,46 @@
 # 
 
-**Über arc42**
+**ARC42 Dokumentation WebApp**
 
-arc42, das Template zur Dokumentation von Software- und
-Systemarchitekturen.
+Diese Markdown Datei dient der ARC42 Dokumentation für das SQS-Projekt.
 
-Template Version 8.2 DE. (basiert auf AsciiDoc Version), Januar 2023
-
-Created, maintained and © by Dr. Peter Hruschka, Dr. Gernot Starke and
-contributors. Siehe <https://arc42.org>.
 
 # Einführung und Ziele {#section-introduction-and-goals}
 
+Dieses Dokument beschreibt die Architektur der .NET Core MVC-Anwendung, die als Übersetzer fungiert und die DEEPL-API nutzt. Zusätzlich speichert die Anwendung alle Übersetzungen in einer Datenbank. Dieses Projekt wurde im Rahmen einer Vorlesung an der Hochschule erstellt und wird von meinem Dozenten bewertet.
+
 ## Aufgabenstellung {#_aufgabenstellung}
 
+Aufgabe it es eine Anwendung zu erstellen. Die Qualität der Software soll professionell abgesichert werden. Die wesentlichsten vorgegebenen Bedingungen für die Umsetzung sind:
+- das Verwenden einer externen API
+- das Einbinden einer Datenbank
+- das Integrieren einer Benutzeroberfläche
+
 ## Qualitätsziele {#_qualit_tsziele}
+
+Die folgend aufgeführten Qualitätsziele nach ISO 25010 sind: Functional Suitability, Operability, Maintainability
 
 ## Stakeholder {#_stakeholder}
 
 +-----------------+-----------------+-----------------------------------+
 | Rolle           | Kontakt         | Erwartungshaltung                 |
 +=================+=================+===================================+
-| *\<Rolle-1>*    | *\<Kontakt-1>*  | *\<Erwartung-1>*                  |
+| *Student *    | *simon.goettsberge@stud.th-rosenheim.de*  | *Eigener Lernerfolg*|
 +-----------------+-----------------+-----------------------------------+
-| *\<Rolle-2>*    | *\<Kontakt-2>*  | *\<Erwartung-2>*                  |
+| *Dozent*    | *mario-leander.reimer@th-rosenheim.de*  | *Umsetzung einer fundierten und professionellen Software-Qualitätssicherung* |
 +-----------------+-----------------+-----------------------------------+
 
 # Randbedingungen {#section-architecture-constraints}
+Die Randbedingungen dieses Projektes werden ausschließlich durch die mündlich kommunizierten Anforderungen bestimmt. Dabei gilt es eine Software zu entwerfen die gezielt entworfen wird. Dabei muss die Software eine externe API, als auch eine Datenbank verwenden. Weitere Details sind alleine dem Studenten überlassen, solange die Software, nach Einschätzung des Dozenten, angemessenen Aufwand qualitätssichernde Maßnahmen genutzt werden. 
 
 # Kontextabgrenzung {#section-system-scope-and-context}
+![Image Description](images/KomponentenDiagramm.png)
+
+Der User kann in der Applikation Übersetzungen durchführen. Dazu stehen ihm alle Sprachen zur Verfügung die auch DeepL anbietet. Alle durchgeführten Übersetzungen werden in der Datenbank gespeichert. Die gespeicherten Übersetzungen können eingesehen werden. Dabei zeigt sich Ausgangs- und Übersetzungssprache also auch der Original- und Übersetzungstext. Zusätzlich wird auch angezeigt wann die Übersetzung durchgeführt wurde. 
+
+Um die Übersetzungen durchzuführen wird auf die DeepL Api zurückgegriffen.
+
+Die durchgeführten Übersetzungen werden auf einer relationalen Datenbank gespeichert.
 
 ## Fachlicher Kontext {#_fachlicher_kontext}
 
@@ -45,6 +57,11 @@ contributors. Siehe <https://arc42.org>.
 **\<Mapping fachliche auf technische Schnittstellen>**
 
 # Lösungsstrategie {#section-solution-strategy}
+
+.NET Core MVC ist ein leistungsstarkes, quelloffenes Framework, das eine robuste und skalierbare Plattform für die Webentwicklung bietet. Seine modulare Architektur ermöglicht einfache Wartung und Erweiterung. Ein großer Vorteil von .NET Core ist, dass alles in einer Hand liegt: Die gesamte Anwendung besteht aus einem Projekt und muss nicht aus mehreren Projekten zusammengeführt werden, was die Entwicklung beschleunigt, ohne die Qualität zu beeinträchtigen. Außerdem sorgen die plattformübergreifenden Fähigkeiten von .NET Core dafür, dass unsere Anwendung auf verschiedenen Betriebssystemen laufen kann, was entscheidend ist, um ein breiteres Publikum zu erreichen. Das MVC-Muster (Model-View-Controller) gewährleistet eine saubere Trennung der Anliegen, was die Code-Organisation erleichtert und die Wartbarkeit der Anwendung verbessert.
+
+DeepL wird aufgrund seiner überlegenen Übersetzungsqualität ausgewählt, die für die Bereitstellung genauer und natürlicher Übersetzungen entscheidend ist. Die API-Integration von DeepL ist unkompliziert und gut dokumentiert, was eine nahtlose Einbindung in unser System ermöglicht. Durch die Nutzung von DeepL können wir uns auf die Entwicklung der Anwendungslogik und Benutzeroberfläche konzentrieren, anstatt eine eigene Übersetzungsengine entwickeln zu müssen.
+
 
 # Bausteinsicht {#section-building-block-view}
 
