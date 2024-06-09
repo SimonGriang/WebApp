@@ -138,55 +138,6 @@ namespace WebApp.Controllers
             return View(translation);
         }
 
-        // GET: Home/Edit/X
-        public async Task<IActionResult> Edit(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var translation = await _context.Translation.FindAsync(id);
-            if (translation == null)
-            {
-                return NotFound();
-            }
-            return View(translation);
-        }
-
-        // POST: Home/Edit/X
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,OriginalText,TranslatedText,translated_at")] Translation translation)
-        {
-            if (id != translation.ID)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(translation);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TranslationExists(translation.ID))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            return View(translation);
-        }
-
         // GET: Home/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {

@@ -10,11 +10,25 @@
     <h4>Translation</h4>
     <hr />
     <dl class="row">
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.OriginalLanguage.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.OriginalLanguage.Name)
+        </dd>
+
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.OriginalText)
         </dt>
         <dd class = "col-sm-10">
             @Html.DisplayFor(model => model.OriginalText)
+        </dd>
+
+        <dt class="col-sm-2">
+            @Html.DisplayNameFor(model => model.TranslatedLanguage.Name)
+        </dt>
+        <dd class="col-sm-10">
+            @Html.DisplayFor(model => model.TranslatedLanguage.Name)
         </dd>
         <dt class = "col-sm-2">
             @Html.DisplayNameFor(model => model.TranslatedText)

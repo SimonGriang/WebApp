@@ -39,6 +39,7 @@ namespace WebApp.Services
                 translatedText = await translator.TranslateTextAsync(originalText, languageFrom.Abbreviation, languageTo.Abbreviation);
             }
             viewModel.Translation.TranslatedText = translatedText?.Text;
+            viewModel.Translation.translated_at = DateTime.Now;
             return viewModel;
         }
 
