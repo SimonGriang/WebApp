@@ -10,6 +10,7 @@ using WebApp.Models;
 using DeepL;
 using WebApp.ViewModels;
 using WebApp.ViewModelHandler;
+using WebApp.Services;
 
 namespace WebApp.Controllers
 {
@@ -26,7 +27,7 @@ namespace WebApp.Controllers
         public async Task<IActionResult> Index()
         {
             return View(await _context.Translation.ToListAsync());
-        }
+        } 
 
         // GET: Translations/Details/5
         public async Task<IActionResult> Details(int? id)
@@ -53,64 +54,73 @@ namespace WebApp.Controllers
             return View(viewModel);
         }
 
-        // POST: Translations/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // GET: Translations/Create
         [HttpPost]
+
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(CreateTranslationViewModel returnedViewModel) //[Bind("ID,OriginalText,TranslatedText,translated_at")] Translation translation)
+
+        public async Task<IActionResult> Create(CreateTranslationViewModel returnedViewModel)
         {
-            Language languageTo = await _context.Language.FindAsync(returnedViewModel.LanguageTo);
-            Language languageFrom = await _context.Language.FindAsync(returnedViewModel.LanguageFrom);
+            if (returnedViewModel.LanguageTo == 0 || returnedViewModel.LanguageFrom == 0)
+            {
+                ModelState.AddModelError("", "Ungültige Sprachauswahl. Bitte wählen Sie gültige Sprachen aus.");
+                return View(returnedViewModel);
+            }
+            if (returnedViewModel.LanguageTo == 0)
+            {
+                // Handle the case when languageTo is 0
+                return NotFound();
+            }
+            Language? languageTo = await _context.Language.FindAsync(returnedViewModel.LanguageTo);
+
+            if (returnedViewModel.LanguageFrom == 0)
+            {
+                // Handle the case when languageFrom is 0
+                return NotFound();
+            }
+            Language? languageFrom = await _context.Language.FindAsync(returnedViewModel.LanguageFrom);
+
 
             CreateTranslationViewModel viewModel = await CreateTranslationViewModelHandler.createViewModelAsync(_context);
-            viewModel.Translation.OriginalLanguage = languageTo;
-            viewModel.Translation.TranslatedLanguage = languageFrom;
-            viewModel.Translation.OriginalText = returnedViewModel.Translation.OriginalText;
+            if (viewModel.Translation is not null)
+            {
+                viewModel.Translation.OriginalLanguage = languageTo;
+                viewModel.Translation.TranslatedLanguage = languageFrom;
+                if (returnedViewModel.Translation is not null)
+                    viewModel.Translation.OriginalText = returnedViewModel.Translation.OriginalText;
+            }
+            else
+            {
+                viewModel.Translation = new Translation();
+                viewModel.Translation.OriginalLanguage = languageTo;
+                viewModel.Translation.TranslatedLanguage = languageFrom;
+            }
 
-            Translation translation = new Translation();
-
-            translation.OriginalLanguage = languageFrom;
-            translation.TranslatedLanguage = languageTo;
-            translation.OriginalText = returnedViewModel.Translation.OriginalText;
 
             try
             {
-                var authKey = "f2981bee-344a-4a1f-b65f-877950fa3855:fx"; // Replace with your key
-                var translator = new Translator(authKey);
-                DeepL.Model.TextResult translatedText = null;
-
-                if (languageFrom.Abbreviation == "DL")
-                {
-                    translatedText = await translator.TranslateTextAsync(viewModel.Translation.OriginalText, null, languageTo.Abbreviation); // "Hallo, Welt!";
-                }
-                else
-                {
-                    translatedText = await translator.TranslateTextAsync(returnedViewModel.Translation.OriginalText, languageFrom.Abbreviation, languageTo.Abbreviation); // "Hallo, Welt!";
-                }
-
-                translation.TranslatedText = translatedText.Text; // .Text einfügen wenn problem gelöst.
-                viewModel.Translation.TranslatedText = translatedText.Text;  // .Text einfügen wenn problem gelöst.
+                TranslationService service = new TranslationService(_context); // context wird eigentlich gar nicht gebraucht. 
+                viewModel = service.TranslateTextAsync(viewModel).GetAwaiter().GetResult();
 
                 if (ModelState.IsValid)
                 {
-                    _context.Add(translation);
+                    _context.Add(viewModel.Translation);
                     await _context.SaveChangesAsync();
                     return View(viewModel);
                 }
                 else
                     return View(viewModel);
-            } 
+            }
             catch (ConnectionException connectionException)
             {
                 TempData["ErrorMessage"] = "Es konnte keine Verbindung zum Webservice aufgerufen werden: " + connectionException.Message;
                 return View();
-            } 
+            }
             catch (QuotaExceededException quotaExceededException)
             {
                 TempData["ErrorMessage"] = "Das Kontigent an möglichen Übersetzungen der Software ist ereicht: " + quotaExceededException.Message;
                 return View();
-            } 
+            }
             catch (DeepLException deeplException)
             {
                 TempData["ErrorMessage"] = "Fehlerhafte Sprachkombination angegeben: " + deeplException.Message;
