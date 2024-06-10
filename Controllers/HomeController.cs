@@ -14,11 +14,13 @@ namespace WebApp.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly WebAppContext _context;
+        private readonly TranslationService _translationService;
 
-        public HomeController(ILogger<HomeController> logger, WebAppContext context)
+        public HomeController(ILogger<HomeController> logger, WebAppContext context, TranslationService translationService)
         {
             _logger = logger;
             _context = context;
+            _translationService = translationService;
         }
 
         // GET: Startpage
@@ -35,7 +37,7 @@ namespace WebApp.Controllers
         {
             if (returnedViewModel.LanguageTo == 0 || returnedViewModel.LanguageFrom == 0)
             {
-                ModelState.AddModelError("", "Ungültige Sprachauswahl. Bitte wählen Sie gültige Sprachen aus.");
+                ModelState.AddModelError("", "Ungï¿½ltige Sprachauswahl. Bitte wï¿½hlen Sie gï¿½ltige Sprachen aus.");
                 return View(returnedViewModel);
             }
             if (returnedViewModel.LanguageTo == 0)
@@ -74,8 +76,7 @@ namespace WebApp.Controllers
 
             try
             {
-                TranslationService service = new TranslationService(_context); // context wird eigentlich gar nicht gebraucht. 
-                viewModel = service.TranslateTextAsync(viewModel).GetAwaiter().GetResult();
+                viewModel = await _translationService.TranslateTextAsync(viewModel);
 
                 if (ModelState.IsValid)
                 {
@@ -93,7 +94,7 @@ namespace WebApp.Controllers
             }
             catch (QuotaExceededException quotaExceededException)
             {
-                TempData["ErrorMessage"] = "Das Kontigent an möglichen Übersetzungen der Software ist ereicht: " + quotaExceededException.Message;
+                TempData["ErrorMessage"] = "Das Kontigent an mï¿½glichen ï¿½bersetzungen der Software ist ereicht: " + quotaExceededException.Message;
                 return View();
             }
             catch (DeepLException deeplException)
@@ -177,3 +178,6 @@ namespace WebApp.Controllers
         }
     }
 }
+
+
+

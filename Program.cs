@@ -2,8 +2,12 @@
 using Microsoft.Extensions.DependencyInjection;
 using WebApp.Data;
 using WebApp.DBSeeding;
+using WebApp.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddTransient<TranslationService>();
+
 builder.Services.AddDbContext<WebAppContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("WebAppContext") ?? throw new InvalidOperationException("Connection string 'WebAppContext' not found.")));
 
