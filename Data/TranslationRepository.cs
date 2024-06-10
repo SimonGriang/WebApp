@@ -26,7 +26,7 @@ namespace WebApp.Data
 
         public List<Translation> GetAllTranslations()
         {
-            return _context.Translation.ToList();
+            return _context.Translation.Include(t => t.OriginalLanguage).Include(t=>t.TranslatedLanguage).ToList();
         }
 
         public bool TranslationExists(int id)
@@ -36,7 +36,7 @@ namespace WebApp.Data
 
         public Translation? GetTranslationById(int id)
         {
-            return _context.Translation.SingleOrDefault(t => t.ID == id);
+            return _context.Translation.Include(t => t.OriginalLanguage).Include(t => t.TranslatedLanguage).SingleOrDefault(t => t.ID == id);
         }
 
         public void UpdateTranslation(Translation translation)
