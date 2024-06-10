@@ -15,18 +15,22 @@ namespace WebApp.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly WebAppContext _context;
         private readonly TranslationService _translationService;
+        private readonly TranslationRepository _translationRepository;
+        private readonly LanguageRepository _languageReository;
 
-        public HomeController(ILogger<HomeController> logger, WebAppContext context, TranslationService translationService)
+        public HomeController(ILogger<HomeController> logger, WebAppContext context, TranslationService translationService, LanguageRepository languageRepository, TranslationRepository translationRepository)
         {
             _logger = logger;
             _context = context;
             _translationService = translationService;
+            _translationRepository = translationRepository;
+            _languageReository = languageRepository;
         }
 
         // GET: Startpage
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            CreateTranslationViewModel viewModel = await CreateTranslationViewModelHandler.createViewModelAsync(_context);
+            CreateTranslationViewModel viewModel = CreateTranslationViewModelHandler.createViewModel(_languageReository);
             return View(viewModel);
         }
 
@@ -35,27 +39,18 @@ namespace WebApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(CreateTranslationViewModel returnedViewModel)
         {
-            if (returnedViewModel.LanguageTo == 0 || returnedViewModel.LanguageFrom == 0)
+            if (returnedViewModel.LanguageTo == 0 || returnedViewModel.LanguageFrom == 0 || _languageReository.LanguageExists(returnedViewModel.LanguageTo) == false || _languageReository.LanguageExists(returnedViewModel.LanguageFrom) == false)
             {
-                ModelState.AddModelError("", "Ung�ltige Sprachauswahl. Bitte w�hlen Sie g�ltige Sprachen aus.");
+                ModelState.AddModelError("", "Ungültige Sprachauswahl. Bitte wählen Sie gültige Sprachen aus.");
                 return View(returnedViewModel);
             }
-            if (returnedViewModel.LanguageTo == 0)
-            {
-                // Handle the case when languageTo is 0
-                return NotFound();
-            }
-            Language? languageTo = await _context.Language.FindAsync(returnedViewModel.LanguageTo);
-
-            if (returnedViewModel.LanguageFrom == 0)
-            {
-                // Handle the case when languageFrom is 0
-                return NotFound();
-            }
-            Language? languageFrom = await _context.Language.FindAsync(returnedViewModel.LanguageFrom);
+            //Language? languageTo = await _context.Language.FindAsync(returnedViewModel.LanguageTo);
+            Language? languageTo = _languageReository.GetLanguage(returnedViewModel.LanguageTo);
+            //Language? languageFrom = await _context.Language.FindAsync(returnedViewModel.LanguageFrom);
+            Language? languageFrom = _languageReository.GetLanguage(returnedViewModel.LanguageFrom);
 
 
-            CreateTranslationViewModel viewModel = await CreateTranslationViewModelHandler.createViewModelAsync(_context);
+            CreateTranslationViewModel viewModel = CreateTranslationViewModelHandler.createViewModel(_languageReository);
             viewModel.LanguageFrom = returnedViewModel.LanguageFrom;
             viewModel.LanguageTo = returnedViewModel.LanguageTo;
 
@@ -68,9 +63,8 @@ namespace WebApp.Controllers
             }
             else
             {
-                viewModel.Translation = new Translation();
-                viewModel.Translation.OriginalLanguage = languageFrom;
-                viewModel.Translation.TranslatedLanguage = languageTo;
+                ModelState.AddModelError("", "Geben Sie Text für die Übersetzung ein.");
+                return View(returnedViewModel);
             }
 
 
@@ -80,12 +74,16 @@ namespace WebApp.Controllers
 
                 if (ModelState.IsValid)
                 {
-                    _context.Add(viewModel.Translation);
-                    await _context.SaveChangesAsync();
+                    if (viewModel.Translation is not null)
+                    {
+                        _translationRepository.AddTranslation(viewModel.Translation);
+                    }
                     return View(viewModel);
                 }
                 else
+                {
                     return View(viewModel);
+                }
             }
             catch (ConnectionException connectionException)
             {
@@ -94,7 +92,7 @@ namespace WebApp.Controllers
             }
             catch (QuotaExceededException quotaExceededException)
             {
-                TempData["ErrorMessage"] = "Das Kontigent an m�glichen �bersetzungen der Software ist ereicht: " + quotaExceededException.Message;
+                TempData["ErrorMessage"] = "Das Kontigent an möglichen Übersetzungen der Software ist ereicht: " + quotaExceededException.Message;
                 return View();
             }
             catch (DeepLException deeplException)
@@ -110,9 +108,10 @@ namespace WebApp.Controllers
         }
 
         // GET: History
-        public async Task<IActionResult> History()
+        public IActionResult History()
         {
-            return View(await _context.Translation.ToListAsync());
+            //return View(await _context.Translation.ToListAsync());
+            return View(_translationRepository.GetAllTranslations());
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -122,15 +121,16 @@ namespace WebApp.Controllers
         }
 
         // GET: Home/Details/X
-        public async Task<IActionResult> Details(int? id)
+        public IActionResult Details(int? id)
         {
-            if (id == null)
+            if (id == null || _translationRepository.TranslationExists(id.Value) == false)
             {
                 return NotFound();
             }
 
-            var translation = await _context.Translation
-                .FirstOrDefaultAsync(m => m.ID == id);
+            //var translation = await _context.Translation.FirstOrDefaultAsync(m => m.ID == id);
+            var translation = _translationRepository.GetTranslationById(id.Value);
+
             if (translation == null)
             {
                 return NotFound();
@@ -140,15 +140,16 @@ namespace WebApp.Controllers
         }
 
         // GET: Home/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public IActionResult Delete(int? id)
         {
-            if (id == null)
+            if (id == null || _translationRepository.TranslationExists(id.Value) == false)
             {
                 return NotFound();
             }
 
-            var translation = await _context.Translation
-                .FirstOrDefaultAsync(m => m.ID == id);
+            //var translation = await _context.Translation.FirstOrDefaultAsync(m => m.ID == id);
+            var translation = _translationRepository.GetTranslationById(id.Value);
+
             if (translation == null)
             {
                 return NotFound();
@@ -160,21 +161,19 @@ namespace WebApp.Controllers
         // POST: Home/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed(int id)
         {
-            var translation = await _context.Translation.FindAsync(id);
+            //var translation = await _context.Translation.FindAsync(id);
+            var translation = _translationRepository.GetTranslationById(id);
+
             if (translation != null)
             {
-                _context.Translation.Remove(translation);
+                //_context.Translation.Remove(translation);
+                _translationRepository.DeleteTranslation(id);
             }
 
-            await _context.SaveChangesAsync();
+            //await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool TranslationExists(int id)
-        {
-            return _context.Translation.Any(e => e.ID == id);
         }
     }
 }
