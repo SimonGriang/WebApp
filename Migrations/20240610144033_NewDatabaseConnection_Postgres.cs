@@ -1,12 +1,13 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 #nullable disable
 
 namespace WebApp.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class NewDatabaseConnection_Postgres : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,10 +16,12 @@ namespace WebApp.Migrations
                 name: "Language",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Abbreviation = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    Abbreviation = table.Column<string>(type: "text", nullable: true),
+                    isTargetLanguage = table.Column<bool>(type: "boolean", nullable: false),
+                    isOriginLanguage = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -29,13 +32,13 @@ namespace WebApp.Migrations
                 name: "Translation",
                 columns: table => new
                 {
-                    ID = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    OriginalText = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    TranslatedText = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    translated_at = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    OriginalLanguageID = table.Column<int>(type: "int", nullable: true),
-                    TranslatedLanguageID = table.Column<int>(type: "int", nullable: true)
+                    ID = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    OriginalText = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    TranslatedText = table.Column<string>(type: "text", nullable: true),
+                    translated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    OriginalLanguageID = table.Column<int>(type: "integer", nullable: true),
+                    TranslatedLanguageID = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
