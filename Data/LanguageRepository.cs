@@ -18,7 +18,7 @@ namespace WebApp.Data
             _context.Language.Add(language);
             _context.SaveChanges();
         }
-
+        
         public void RemoveLanguage(int id)
         {
             var language = _context.Language.FirstOrDefault(l => l.ID == id);

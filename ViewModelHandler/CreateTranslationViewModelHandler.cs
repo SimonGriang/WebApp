@@ -12,8 +12,6 @@ namespace WebApp.ViewModelHandler
             CreateTranslationViewModel viewModel = new CreateTranslationViewModel();
 
             viewModel.Translation = new Translation();
-
-            //List<Language> allLanguages = await _context.Language.ToListAsync();
             List<Language> allLanguages = _languageRepository.GetAllLanguages();
 
             List<Language> originLanguages = new List<Language>();

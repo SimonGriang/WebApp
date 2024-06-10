@@ -44,9 +44,7 @@ namespace WebApp.Controllers
                 ModelState.AddModelError("", "Ungültige Sprachauswahl. Bitte wählen Sie gültige Sprachen aus.");
                 return View(returnedViewModel);
             }
-            //Language? languageTo = await _context.Language.FindAsync(returnedViewModel.LanguageTo);
             Language? languageTo = _languageReository.GetLanguage(returnedViewModel.LanguageTo);
-            //Language? languageFrom = await _context.Language.FindAsync(returnedViewModel.LanguageFrom);
             Language? languageFrom = _languageReository.GetLanguage(returnedViewModel.LanguageFrom);
 
 
@@ -110,7 +108,6 @@ namespace WebApp.Controllers
         // GET: History
         public IActionResult History()
         {
-            //return View(await _context.Translation.ToListAsync());
             return View(_translationRepository.GetAllTranslations());
         }
 
@@ -127,8 +124,6 @@ namespace WebApp.Controllers
             {
                 return NotFound();
             }
-
-            //var translation = await _context.Translation.FirstOrDefaultAsync(m => m.ID == id);
             var translation = _translationRepository.GetTranslationById(id.Value);
 
             if (translation == null)
@@ -147,7 +142,6 @@ namespace WebApp.Controllers
                 return NotFound();
             }
 
-            //var translation = await _context.Translation.FirstOrDefaultAsync(m => m.ID == id);
             var translation = _translationRepository.GetTranslationById(id.Value);
 
             if (translation == null)
@@ -163,16 +157,12 @@ namespace WebApp.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
-            //var translation = await _context.Translation.FindAsync(id);
             var translation = _translationRepository.GetTranslationById(id);
 
             if (translation != null)
             {
-                //_context.Translation.Remove(translation);
                 _translationRepository.DeleteTranslation(id);
             }
-
-            //await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
     }
