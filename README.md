@@ -8,5 +8,7 @@ Benötigte Tests:
 - Integration Test
 - Unit Test
 - E2E Test
-- Lasttest
+- Lasttest 
 - Akzeptanztest
+- Dependency Security Checks (Github Action)
+
