@@ -91,17 +91,17 @@ namespace WebApp.Controllers
             catch (QuotaExceededException quotaExceededException)
             {
                 TempData["ErrorMessage"] = "Das Kontigent an möglichen Übersetzungen der Software ist ereicht: " + quotaExceededException.Message;
-                return View();
+                return View(viewModel);
             }
             catch (DeepLException deeplException)
             {
                 TempData["ErrorMessage"] = "Fehlerhafte Sprachkombination angegeben: " + deeplException.Message;
-                return View();
+                return View(viewModel);
             }
             catch (Exception exception)
             {
                 TempData["ErrorMessage"] = "Ein unerwarteter Fehler ist aufgetreten: " + exception.Message;
-                return View();
+                return View(viewModel);
             }
         }
 
